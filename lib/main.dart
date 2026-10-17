@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 void main() {
   runApp(const SnakeGame());
@@ -62,12 +63,43 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class GameScreen extends StatelessWidget {
+
+class GameScreen extends StatefulWidget {
   const GameScreen({super.key});
 
   static const int gridSize = 20;
 
   @override
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> {
+  List<int> snakeCells = [210, 211, 212];
+  int direction = -20;
+  Timer? gameTimer;
+  @override
+  void initState() {
+    super.initState();
+
+    gameTimer = Timer.periodic(
+      const Duration(milliseconds: 300),
+      (timer) {
+        moveSnake();
+      },
+    );
+  }
+  void moveSnake() {
+    setState(() {
+      final newHead = snakeCells.last + direction ;
+      snakeCells.add(newHead);
+      snakeCells.removeAt(0);
+    });
+  }
+  @override
+  void dispose() {
+    gameTimer?.cancel();
+    super.dispose();
+  }
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF101820),
@@ -92,13 +124,12 @@ class GameScreen extends StatelessWidget {
             child: GridView.builder(
               physics: const NeverScrollableScrollPhysics(),
               padding: EdgeInsets.zero,
-              itemCount: gridSize * gridSize,
+              itemCount: GameScreen.gridSize * GameScreen.gridSize,
               gridDelegate:
                   const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: gridSize,
+                crossAxisCount: GameScreen.gridSize,
               ),
               itemBuilder: (context, index) {
-                final snakeCells = [210, 211, 212];
                 const foodCell = 150;
 
                 if (snakeCells.contains(index)) {
@@ -113,7 +144,10 @@ class GameScreen extends StatelessWidget {
 
                 if (index == foodCell) {
                   return const Center(
-                    child: Text('🍎', style: TextStyle(fontSize: 16)),
+                    child: Text(
+                      '🍎',
+                      style: TextStyle(fontSize: 16),
+                    ),
                   );
                 }
 
