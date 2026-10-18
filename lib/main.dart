@@ -154,6 +154,8 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {
       snakeCells = [210, 211, 212];
       direction = -20;
+      foodCell = 150;
+      score = 0;
       gameOver = false;
     });
 
