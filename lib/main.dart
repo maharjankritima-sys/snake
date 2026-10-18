@@ -1,5 +1,6 @@
 
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -77,6 +78,8 @@ class GameScreen extends StatefulWidget {
 class _GameScreenState extends State<GameScreen> {
   List<int> snakeCells = [210, 211, 212];
   int direction = -20;
+  int foodCell =150;
+  int score = 0;
 
   Timer? gameTimer;
   bool gameOver = false;
@@ -134,7 +137,13 @@ class _GameScreenState extends State<GameScreen> {
 
     setState(() {
       snakeCells.add(newHead);
-      snakeCells.removeAt(0);
+      if (newHead == foodCell) {
+        score++;
+        foodCell = Random().nextInt(400);
+      }
+      else{
+        snakeCells.removeAt(0);
+      }
     });
   }
 
@@ -173,6 +182,17 @@ class _GameScreenState extends State<GameScreen> {
       ),
       body: Column(
         children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Text(
+              'Score: $score',
+              style: const TextStyle(
+                fontSize: 24,
+                color: Colors.greenAccent,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
           Expanded(
             child: Center(
               child: AspectRatio(
@@ -200,7 +220,6 @@ class _GameScreenState extends State<GameScreen> {
                           crossAxisCount: GameScreen.gridSize,
                         ),
                         itemBuilder: (context, index) {
-                          const foodCell = 150;
 
                           if (snakeCells.contains(index)) {
                             return Container(
