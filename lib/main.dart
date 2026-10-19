@@ -299,17 +299,36 @@ void restartGame() {
                           ),
                           itemBuilder: (context, index) {
                             if (snakeCells.contains(index)) {
-                              return Container(
-                                margin: const EdgeInsets.all(1),
-                                decoration: BoxDecoration(
-                                  color: Colors.greenAccent,
-                                  borderRadius:
-                                      BorderRadius.circular(3),
-                                ),
-                              );
-                            }
+  final isHead = index == snakeCells.last;
 
-                            if (index == foodCell) {
+  return Container(
+    margin: const EdgeInsets.all(1),
+    decoration: BoxDecoration(
+      color: Colors.greenAccent,
+      borderRadius: BorderRadius.circular(3),
+    ),
+    child: isHead
+        ? const Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 2,
+                  backgroundColor: Colors.black,
+                ),
+                SizedBox(width: 3),
+                CircleAvatar(
+                  radius: 2,
+                  backgroundColor: Colors.black,
+                ),
+              ],
+            ),
+          )
+        : null,
+  );
+}
+
+                             if (index == foodCell) {
                               return const Center(
                                 child: Text(
                                   '🍎',
