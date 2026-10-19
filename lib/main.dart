@@ -150,7 +150,6 @@ class _GameScreenState extends State<GameScreen> {
         break;
     }
   }
-
   // MOVE SNAKE AND CHECK COLLISIONS
   void moveSnake() {
     if (gameOver) return;
@@ -163,12 +162,22 @@ class _GameScreenState extends State<GameScreen> {
     final hitsLeft = direction == -1 && head % 20 == 0;
     final hitsRight = direction == 1 && head % 20 == 19;
 
-    if (newHead < 0 ||
+    final hitsWall = newHead < 0 ||
         newHead >= 400 ||
         hitsTop ||
         hitsBottom ||
         hitsLeft ||
-        hitsRight) {
+        hitsRight;
+
+    final eatingFood = newHead == foodCell;
+
+    // Check whether the snake hits its own body.
+    // The tail moves away on normal moves, so entering
+    // the current tail cell is allowed if not eating.
+    final hitsSelf = snakeCells.contains(newHead) &&
+        (eatingFood || newHead != snakeCells.first);
+
+    if (hitsWall || hitsSelf) {
       gameTimer?.cancel();
 
       setState(() {
@@ -181,16 +190,15 @@ class _GameScreenState extends State<GameScreen> {
     setState(() {
       snakeCells.add(newHead);
 
-      if (newHead == foodCell) {
+      if (eatingFood) {
         score++;
 
-        // Save a new record when the player beats it.
         if (score > highScore) {
           highScore = score;
           saveHighScore();
         }
 
-        // Spawn food outside the snake.
+        // Generate food outside the snake.
         do {
           foodCell = Random().nextInt(400);
         } while (snakeCells.contains(foodCell));
@@ -199,27 +207,24 @@ class _GameScreenState extends State<GameScreen> {
       }
     });
   }
+void restartGame() {
+  gameTimer?.cancel();
 
-  // RESTART GAME
-  void restartGame() {
-    gameTimer?.cancel();
+  setState(() {
+    snakeCells = [210, 211, 212];
+    direction = -20;
+    foodCell = 150;
+    score = 0;
+    gameOver = false;
+  });
 
-    setState(() {
-      snakeCells = [210, 211, 212];
-      direction = -20;
-      foodCell = 150;
-      score = 0;
-      gameOver = false;
-    });
+  gameFocusNode.requestFocus();
 
-    gameFocusNode.requestFocus();
-
-    gameTimer = Timer.periodic(
-      const Duration(milliseconds: 300),
-      (timer) => moveSnake(),
-    );
-  }
-
+  gameTimer = Timer.periodic(
+    const Duration(milliseconds: 300),
+    (_) => moveSnake(),
+  );
+}
   @override
   void dispose() {
     gameTimer?.cancel();
