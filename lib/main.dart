@@ -1,8 +1,10 @@
 
 import 'dart:async';
 import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const SnakeGame());
@@ -81,30 +83,45 @@ class _GameScreenState extends State<GameScreen> {
   int direction = -20;
   int foodCell = 150;
   int score = 0;
+  int highScore = 0;
 
   Timer? gameTimer;
   bool gameOver = false;
 
-  // Keep one FocusNode for the entire game screen.
   final FocusNode gameFocusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
+    loadHighScore();
 
     gameTimer = Timer.periodic(
       const Duration(milliseconds: 300),
-      (timer) {
-        moveSnake();
-      },
+      (timer) => moveSnake(),
     );
+  }
+
+  // LOAD SAVED HIGH SCORE
+  Future<void> loadHighScore() async {
+    final prefs = await SharedPreferences.getInstance();
+    final savedScore = prefs.getInt('highScore') ?? 0;
+
+    if (!mounted) return;
+
+    setState(() {
+      highScore = savedScore;
+    });
+  }
+
+  // SAVE HIGH SCORE
+  Future<void> saveHighScore() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('highScore', highScore);
   }
 
   // CHANGE DIRECTION
   void changeDirection(int newDirection) {
     if (gameOver) return;
-
-    // Prevent reversing directly into the snake's body.
     if (newDirection == -direction) return;
 
     setState(() {
@@ -134,7 +151,7 @@ class _GameScreenState extends State<GameScreen> {
     }
   }
 
-  // MOVE SNAKE AND CHECK WALL COLLISION
+  // MOVE SNAKE AND CHECK COLLISIONS
   void moveSnake() {
     if (gameOver) return;
 
@@ -167,7 +184,13 @@ class _GameScreenState extends State<GameScreen> {
       if (newHead == foodCell) {
         score++;
 
-        // Generate an apple location outside the snake.
+        // Save a new record when the player beats it.
+        if (score > highScore) {
+          highScore = score;
+          saveHighScore();
+        }
+
+        // Spawn food outside the snake.
         do {
           foodCell = Random().nextInt(400);
         } while (snakeCells.contains(foodCell));
@@ -189,14 +212,11 @@ class _GameScreenState extends State<GameScreen> {
       gameOver = false;
     });
 
-    // Restore keyboard focus after restarting.
     gameFocusNode.requestFocus();
 
     gameTimer = Timer.periodic(
       const Duration(milliseconds: 300),
-      (timer) {
-        moveSnake();
-      },
+      (timer) => moveSnake(),
     );
   }
 
@@ -224,13 +244,26 @@ class _GameScreenState extends State<GameScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.all(12),
-              child: Text(
-                'Score: $score',
-                style: const TextStyle(
-                  fontSize: 24,
-                  color: Colors.greenAccent,
-                  fontWeight: FontWeight.bold,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Text(
+                    'Score: $score',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      color: Colors.greenAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    'Best: $highScore',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      color: Colors.amberAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -303,6 +336,20 @@ class _GameScreenState extends State<GameScreen> {
                                       color: Colors.redAccent,
                                       fontSize: 30,
                                       fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'Score: $score',
+                                    style: const TextStyle(
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Best Score: $highScore',
+                                    style: const TextStyle(
+                                      color: Colors.amberAccent,
+                                      fontSize: 20,
                                     ),
                                   ),
                                   const SizedBox(height: 16),
