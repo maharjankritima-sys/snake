@@ -41,7 +41,7 @@ class HomeScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.bold,
-                color: Colors.greenAccent,
+                color: const Color(0xFFFF8FC7),
               ),
             ),
             const SizedBox(height: 20),
@@ -304,9 +304,9 @@ void restartGame() {
   return Container(
     margin: const EdgeInsets.all(1),
     decoration: BoxDecoration(
-      color: Colors.greenAccent,
-      borderRadius: BorderRadius.circular(3),
-    ),
+  color: const Color(0xFFFF8FC7),
+  borderRadius: BorderRadius.circular(3),
+),
     child: isHead
         ? const Center(
             child: Row(
